@@ -1,5 +1,6 @@
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { dateLocale } from "../i18n";
+import { composerInputBounds } from "../logic/composer-layout";
 import { DesktopBrowser } from "../components/DesktopBrowser";
 import { tr } from "../i18n";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -11,6 +12,7 @@ import {
   ScrollView,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { AnimatedPressable as Pressable } from "../components/Motion";
@@ -132,7 +134,9 @@ export function ChatScreen({
   const [composerFocused, setComposerFocused] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [dockHeight, setDockHeight] = useState(88);
-  const [inputHeight, setInputHeight] = useState(44);
+  const { fontScale } = useWindowDimensions();
+  const inputBounds = composerInputBounds(fontScale);
+  const [inputHeight, setInputHeight] = useState(inputBounds.minHeight);
   const [selection, setSelection] = useState({ start: 0, end: 0 });
   const [dismissedMention, setDismissedMention] = useState("");
   const list = useRef<FlatList<Message>>(null);
@@ -493,10 +497,10 @@ export function ChatScreen({
             onFocus={() => setComposerFocused(true)}
             onBlur={() => setComposerFocused(false)}
             onContentSizeChange={event => {
-              const height = Math.max(44, Math.min(150, Math.ceil(event.nativeEvent.contentSize.height)));
-              setInputHeight(previous => Math.abs(previous - height) > 1 ? height : previous);
+              const height = Math.max(inputBounds.minHeight, Math.min(inputBounds.maxHeight, Math.ceil(event.nativeEvent.contentSize.height)));
+              setInputHeight(height);
             }}
-            scrollEnabled={inputHeight >= 150}
+            scrollEnabled={composer.text.length > 0 && inputHeight >= inputBounds.maxHeight}
             underlineColorAndroid="transparent"
             placeholderTextColor={t.muted}
             style={{
@@ -511,10 +515,10 @@ export function ChatScreen({
               fontSize: 17,
               lineHeight: 24,
               includeFontPadding: false,
-              minHeight: 44,
-              maxHeight: 150,
-              // Wrapped placeholders must not make an empty composer grow.
-              height: composer.text.length === 0 ? 44 : undefined,
+              minHeight: inputBounds.minHeight,
+              maxHeight: inputBounds.maxHeight,
+              // Reserve one scaled line without growing for wrapped placeholders.
+              height: composer.text.length === 0 ? inputBounds.minHeight : undefined,
             }}
           />
           <IconButton primary brand size={44}
