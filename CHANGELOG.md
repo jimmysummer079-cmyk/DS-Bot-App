@@ -14,6 +14,10 @@ All notable changes to DS Bot are listed here. The format follows [Keep a Change
 
 ## Unreleased
 
+### Fixed
+
+- Size the mobile chat input's minimum height for the system font scale instead of reserving only an unscaled line.
+
 ### Upstream synchronization (unreleased)
 
 - Port the approved upstream desktop, runtime, session-navigation, thinking, views, avatar, and message-display changes while retaining DS Bot App version `0.1.3`, fork release metadata, and mobile authorization/TLS isolation.
